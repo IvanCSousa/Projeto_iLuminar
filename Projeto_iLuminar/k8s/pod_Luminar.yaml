@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-luminar
+  namespace: luminar-ns
+  labels:
+    app: pod-luminar
+spec:
+  containers:
+    - name: pod-luminar
+      image: ivancsousa/luminar:v1
+      ports:
+        - containerPort: 5000

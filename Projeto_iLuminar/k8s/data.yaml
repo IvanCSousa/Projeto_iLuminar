@@ -1,0 +1,27 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: luminar-storage
+  namespace: luminar-ns
+  #annotations:
+    #storageclass.kubernetes.io/is-default-class: "true"
+provisioner: rancher.io/local-path #aws-ebs
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: True
+#parameters:
+  #fstype: ext4
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: luminar-pvc
+  namespace: luminar-ns
+spec:
+  accessModes:
+    - ReadWriteOnce #leitura-escrita por apenas 1 nó #readOnlyMany #ReadWriteMany
+  storageClassName: luminar-storage
+  resources:
+    requests:
+      storage: 1Gi
+  

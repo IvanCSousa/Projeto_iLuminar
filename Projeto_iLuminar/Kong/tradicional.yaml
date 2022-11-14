@@ -1,0 +1,92 @@
+image:
+  repository: kong/kong-gateway
+  tag: 2.8.0.0-alpine
+
+migrations:
+  preUpgrade: false
+  postUpgrade: false
+
+enterprise:
+  enabled: true
+  portal:
+    enabled: false
+    session_conf_secret: kong-session-config
+  rbac:
+    enabled: true
+    admin_gui_auth: basic-auth
+    session_conf_secret: kong-session-config
+  smtp:
+    enabled: false
+
+env:
+  prefix: /kong_prefix/
+  database: postgres
+
+  log_level: "debug"
+  portal_gui_protocol: "http"
+  portal_cors_origins: "*"
+  portal_auth: "basic-auth"
+  portal_session_conf:
+    valueFrom:
+      secretKeyRef:
+        name: "kong-session-config"
+        key: "portal_session_conf"
+  password:
+    valueFrom:
+      secretKeyRef:
+        name: "kong-superuser-password"
+        key: "password"
+
+proxy:
+  enabled: true
+  type: ClusterIP
+
+  http:
+    enabled: true
+
+  tls:
+    enabled: false
+
+admin:
+  enabled: true
+  type: ClusterIP
+
+  http:
+    enabled: true
+
+  tls:
+    enabled: false
+
+  ingress:
+    enabled: false
+
+manager:
+  enabled: true
+  type: ClusterIP
+
+  http:
+    enabled: true
+
+  tls:
+    enabled: false
+
+  ingress:
+    enabled: false
+
+portal:
+  enabled: false
+
+portalapi:
+  enabled: false
+
+
+postgresql:
+  enabled: true
+  postgresqlDatabase: kong
+  postgresqlPassword: kong
+  postgresqlUsername: kong
+  service:
+    port: 5432
+
+ingressController:
+  enabled: false

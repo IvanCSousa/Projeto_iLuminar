@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: luminar-ns
+  labels:
+    name: luminar-ns
+
+---
+
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: deploy-luminar
+  namespace: luminar-ns
+spec:
+  template:
+    metadata:
+      name: deploy-luminar
+      labels:
+        app: deploy-luminar
+    spec:
+      containers:
+        - name:  pod-luminar
+          image: ivancsousa/luminar:v1.2
+          ports:
+            - containerPort: 5000
+          livenessProbe:
+            httpGet:
+              path: /connect
+              port: 5000
+            periodSeconds: 10
+            failureThreshold: 3
+            initialDelaySeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /connect
+              port: 5000
+            periodSeconds: 10
+            failureThreshold: 5
+            initialDelaySeconds: 10
+          volumeMounts:
+            - mountPath: ../logs
+              name: luminar-data
+          resources:
+            requests:
+              cpu: "0.5"
+              memory: "32Mi"
+            limits:
+              memory: "40Mi"
+              cpu: "1"
+      restartPolicy: Always
+
+      volumes:
+        - name: luminar-data
+          persistentVolumeClaim:
+            claimName: luminar-pvc
+  replicas: 2
+  selector:
+    matchLabels:
+      app: deploy-luminar
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-luminar
+  namespace: luminar-ns
+spec:
+  selector:
+    app: deploy-luminar
+  ports:
+    - port: 5000 #porta que ele vai ouvir dentro do cluster porta do serviço
+      targetPort: 5000 #caso queira mudar a porta de envio 80 / porta alvo do container
+      
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: luminar-hpa
+  namespace: luminar-ns
+spec:
+  scaleTargetRef: # quem eu estou escalando, qual é a refêrncia
+    apiVersion: apps/v1
+    kind: Deployment
+    name: deploy-luminar
+  minReplicas: 1 #número minimo
+  maxReplicas: 10 #número máximo 
+  metrics: #baseado nos recursos do sistema cpu/memoria/afins
+    - type: Resource
+      resource:  #baseado na utilização 
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50 #uso médio de 50% do requests do deployment
